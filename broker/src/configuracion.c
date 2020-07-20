@@ -14,7 +14,7 @@ t_configuracion* configuracion_crear() {
     t_config* config = config_create(config_path);
     bool configuracion_valida = true;
 
-    if (!config) {
+    if(!config) {
         printf("Archivo '%s' no encontrado\n", config_path);
         exit(EXIT_FAILURE);
     }
