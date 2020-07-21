@@ -49,14 +49,6 @@ t_mensaje_despachable* buzon_almacenar_mensaje(t_buzon* buzon, t_paquete* paquet
         particion_ocupar(mensaje_despachable->particion_asociada);
         pthread_mutex_unlock(&buzon->mutex_memoria);
 
-        log_info(
-            logger,
-            "MENSAJE ALMACENADO - Id_mensaje: %i | Size_mensaje: %i | Base_particion: %i",
-            mensaje_despachable->id,
-            mensaje_despachable->size,
-            mensaje_despachable->particion_asociada->base
-        );
-
         cola_push_mensaje_sin_despachar(cola, mensaje_despachable);
     }
 
@@ -76,6 +68,8 @@ void buzon_despachar_mensaje_de(t_buzon* buzon, t_cola* cola) {
 
         if(enviado) {
             mensaje_despachable_add_suscriptor_enviado(mensaje_despachable, suscriptor);
+
+            //TODO: refactor
             logger_enviado_a_un_suscriptor(logger, paquete, suscriptor->id);
         }
 
@@ -92,6 +86,8 @@ void buzon_vaciar_hasta_tener(t_buzon* buzon, int espacio) {
         if(memoria_corresponde_compactar(buzon->memoria)) {
             memoria_compactar(buzon->memoria);
 
+            log_info(logger, "\tCOMPACTACION EJECUTADA");
+
             memoria_resetear_contador_particiones_desocupadas(buzon->memoria);
 
             if(memoria_existe_particion_libre_con(buzon->memoria, espacio))
@@ -99,10 +95,14 @@ void buzon_vaciar_hasta_tener(t_buzon* buzon, int espacio) {
         }
 
         t_particion* particion_victima = memoria_get_particion_a_desocupar(buzon->memoria);
+        int id_mensaje_victima = particion_victima->id_mensaje_asociado;
         administrador_colas_remove_and_destroy_mensaje_despachable_by_id(buzon->administrador_colas, particion_victima->id_mensaje_asociado);
         particion_desocupar(particion_victima);
 
-        log_info(logger, "PARTICION ELIMINADA - Base_particion: %i", particion_victima->base);
+        log_info(logger, "\tMENSAJE ELIMINADO { id: %i } ==> PARTICION LIBERADA { base: %i | size: %i }",
+                id_mensaje_victima,
+                particion_victima->base,
+                particion_victima->tamanio);
 
         memoria_consolidar(buzon->memoria);
 
@@ -131,6 +131,7 @@ void buzon_registrar_suscriptor(t_buzon* buzon, t_suscriptor* suscriptor) {
                 if(!fue_enviado_anteriormente)
                     mensaje_despachable_add_suscriptor_enviado(mensaje_despachable, suscriptor);
 
+                //TODO: refactor
                 logger_enviado_a_un_suscriptor(logger, paquete, suscriptor->id);
             }
 
@@ -184,6 +185,4 @@ void buzon_imprimir_estado_en(t_buzon* buzon, char* path_archivo) {
     pthread_mutex_unlock(&buzon->mutex_memoria);
 
     fclose(dump_file);
-
-    log_info(logger, "DUMP DE CACHE EJECUTADO");
 }

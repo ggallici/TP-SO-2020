@@ -148,8 +148,6 @@ void memoria_compactar(t_memoria* memoria) {
     }
 
     memoria_consolidar(memoria);
-
-    log_info(logger, "COMPACTACION EJECUTADA");
 }
 
 void memoria_consolidar(t_memoria* memoria) {
@@ -166,7 +164,9 @@ void memoria_consolidar(t_memoria* memoria) {
             particion->tamanio += particion_siguiente->tamanio;
 
             if(memoria->algoritmo_memoria == BUDDY_SYSTEM)
-                log_info(logger, "PARTICIONES ASOCIADAS - Bases: %i y %i", particion->base, particion_siguiente->base);
+                log_info(logger, "\tPARTICION %i { base: %i | size: %i } ASOCIADA A PARTICION %i { base: %i | size: %i }",
+                        i, particion->base, particion->tamanio,
+                        i + 1, particion_siguiente->base, particion_siguiente->tamanio);
 
             list_remove_and_destroy_element(memoria->particiones, i + 1, (void*) particion_liberar);
 
