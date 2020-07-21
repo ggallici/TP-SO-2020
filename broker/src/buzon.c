@@ -69,8 +69,11 @@ void buzon_despachar_mensaje_de(t_buzon* buzon, t_cola* cola) {
         if(enviado) {
             mensaje_despachable_add_suscriptor_enviado(mensaje_despachable, suscriptor);
 
-            //TODO: refactor
-            logger_enviado_a_un_suscriptor(logger, paquete, suscriptor->id);
+            log_info(logger, "\t%s ENVIADO { id: %i | correlation_id: %i } A SUSCRIPTOR { id: %i }",
+                    mensaje_get_tipo_as_string(paquete->header->tipo_mensaje),
+                    paquete->header->id_mensaje,
+                    paquete->header->correlation_id_mensaje,
+                    suscriptor->id);
         }
 
         paquete_liberar(paquete);
@@ -131,8 +134,11 @@ void buzon_registrar_suscriptor(t_buzon* buzon, t_suscriptor* suscriptor) {
                 if(!fue_enviado_anteriormente)
                     mensaje_despachable_add_suscriptor_enviado(mensaje_despachable, suscriptor);
 
-                //TODO: refactor
-                logger_enviado_a_un_suscriptor(logger, paquete, suscriptor->id);
+                log_info(logger, "\t%s ENVIADO { id: %i | correlation_id: %i } A SUSCRIPTOR { id: %i }",
+                        mensaje_get_tipo_as_string(paquete->header->tipo_mensaje),
+                        paquete->header->id_mensaje,
+                        paquete->header->correlation_id_mensaje,
+                        suscriptor->id);
             }
 
             paquete_liberar(paquete);
@@ -145,8 +151,15 @@ void buzon_registrar_suscriptor(t_buzon* buzon, t_suscriptor* suscriptor) {
 void buzon_recibir_ack(t_buzon* buzon, t_ack* ack) {
     t_mensaje_despachable* mensaje_despachable = administrador_colas_find_mensaje_despachable_by_id(buzon->administrador_colas, ack->id_mensaje);
 
-    if(mensaje_despachable)
+    if(mensaje_despachable) {
         mensaje_despachable_add_suscriptor_recibido(mensaje_despachable, ack);
+
+        if(mensaje_despachable_tiene_todos_los_acks(mensaje_despachable))
+            log_debug(logger_debug, "Llegaron todos los ACKs del MENSAJE { id: %i }", ack->id_mensaje);
+    }
+    else {
+        log_warning(logger_debug, "No se pudo agregar el ACK. El MENSAJE { id: %i } ya fue eliminado", ack->id_mensaje);
+    }
 }
 
 void buzon_imprimir_estado_en(t_buzon* buzon, char* path_archivo) {

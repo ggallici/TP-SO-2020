@@ -42,12 +42,15 @@ void _procesar_paquete_de(t_paquete* paquete, int cliente) {
 
         t_mensaje_despachable* mensaje_despachable = buzon_almacenar_mensaje(buzon, paquete);
 
-        log_info(logger, "\t%s ALMACENADO { id: %i | size: %i } ==> PARTICION ASIGNADA { base: %i | size: %i }",
-                mensaje_get_tipo_as_string(paquete->header->tipo_mensaje),
-                mensaje_despachable->id,
-                mensaje_despachable->size,
-                mensaje_despachable->particion_asociada->base,
-                mensaje_despachable->particion_asociada->tamanio);
+        if(mensaje_despachable)
+            log_info(logger, "\t%s ALMACENADO { id: %i | size: %i } ==> PARTICION ASIGNADA { base: %i | size: %i }",
+                    mensaje_get_tipo_as_string(paquete->header->tipo_mensaje),
+                    mensaje_despachable->id,
+                    mensaje_despachable->size,
+                    mensaje_despachable->particion_asociada->base,
+                    mensaje_despachable->particion_asociada->tamanio);
+        else
+            log_warning(logger_debug, "El MENSAJE fue ignorado por ser REDUNDANTE");
 
         mensaje_despachable_informar_id_a(mensaje_despachable, cliente);
 
@@ -87,6 +90,7 @@ void _despachar_mensajes_de(t_cola* cola) {
 }
 
 void mensajeria_inicializar() {
+    logger_debug = log_create("broker_debug.log", "BROKER", true, LOG_LEVEL_DEBUG);
     configuracion = configuracion_crear();
     logger = log_create(configuracion->log_file, "BROKER", true, LOG_LEVEL_INFO);
     buzon = buzon_crear(

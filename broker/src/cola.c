@@ -115,6 +115,10 @@ bool cola_remove_and_destroy_mensaje_despachable_by_id(t_cola* cola, uint32_t id
     pthread_mutex_unlock(&cola->mutex_mensajes_sin_despachar);
 
     if(mensaje_sin_despachar) {
+        log_warning(logger_debug, "%s { id: %i } fue eliminado antes de ser DESPACHADO",
+            mensaje_get_tipo_as_string(cola->tipo_mensaje),
+            mensaje_sin_despachar->id);
+
         mensaje_despachable_liberar(mensaje_sin_despachar);
         return true;
     }
