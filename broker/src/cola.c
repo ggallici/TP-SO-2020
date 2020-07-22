@@ -119,6 +119,7 @@ bool cola_remove_and_destroy_mensaje_despachable_by_id(t_cola* cola, uint32_t id
             mensaje_get_tipo_as_string(cola->tipo_mensaje),
             mensaje_sin_despachar->id);
 
+        sem_wait(&cola->contador_mensajes_sin_despachar);
         mensaje_despachable_liberar(mensaje_sin_despachar);
         return true;
     }
