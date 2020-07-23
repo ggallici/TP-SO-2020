@@ -11,53 +11,38 @@ void _procesar_paquete_de(t_paquete* paquete, int cliente) {
     switch(paquete->header->tipo_paquete) {
     case SUSCRIPCION: {
         t_suscripcion* suscripcion = paquete_to_suscripcion(paquete);
-
-        log_info(logger, "\tSUSCRIPCION RECIBIDA { cola: %s | suscriptor: %i }",
-                mensaje_get_tipo_as_string(suscripcion->tipo_mensaje),
-                suscripcion->id_suscriptor);
-
         t_suscriptor* suscriptor = suscriptor_crear(suscripcion->id_suscriptor, suscripcion->tipo_mensaje, cliente);
 
         buzon_registrar_suscriptor(buzon, suscriptor);
 
-        suscripcion_liberar(suscripcion);
+        logger_suscripcion_recibida(suscripcion);
 
+        suscripcion_liberar(suscripcion);
         break;
     }
     case ACK: {
         t_ack* ack = paquete_to_ack(paquete);
 
-        log_info(logger, "\tACK RECIBIDO { mensaje: %i | suscriptor: %i }", ack->id_mensaje, ack->id_suscriptor);
-
         buzon_recibir_ack(buzon, ack);
 
-        ack_liberar(ack);
+        logger_ack_recibido(ack);
 
+        ack_liberar(ack);
         break;
     }
     case MENSAJE: {
-        log_info(logger, "\t%s RECIBIDO { id: AUN_NO_ASIGNADO | correlation_id: %i }",
-                mensaje_get_tipo_as_string(paquete->header->tipo_mensaje),
-                paquete->header->correlation_id_mensaje);
+        logger_mensaje_recibido(paquete);
 
         t_mensaje_despachable* mensaje_despachable = buzon_almacenar_mensaje(buzon, paquete);
 
-        if(mensaje_despachable)
-            log_info(logger, "\t%s ALMACENADO { id: %i | size: %i } ==> PARTICION ASIGNADA { base: %i | size: %i }",
-                    mensaje_get_tipo_as_string(paquete->header->tipo_mensaje),
-                    mensaje_despachable->id,
-                    mensaje_despachable->size,
-                    mensaje_despachable->particion_asociada->base,
-                    mensaje_despachable->particion_asociada->tamanio);
-        else
-            log_warning(logger_debug, "El MENSAJE fue ignorado por ser REDUNDANTE");
+        logger_mensaje_almacenado(mensaje_despachable);
 
         mensaje_despachable_informar_id_a(mensaje_despachable, cliente);
 
         break;
     }
     default:
-        printf("Anda a saber que le llego al pobre broker");
+        logger_anda_a_saber_que_llego();
         break;
     }
 
@@ -75,9 +60,11 @@ void _gestionar_clientes() {
     int broker = ipc_escuchar_en(configuracion->ip_broker, configuracion->puerto_broker);
 
     while(1) {
-        pthread_t gestor_de_un_cliente;
         int cliente = ipc_esperar_cliente(broker);
-        log_info(logger, "< CONEXION INICIADA [%i] >", cliente);
+
+        logger_conexion_iniciada(cliente);
+
+        pthread_t gestor_de_un_cliente;
         pthread_create(&gestor_de_un_cliente, NULL, (void*) _gestionar_a, (void*) cliente);
         pthread_detach(gestor_de_un_cliente);
     }
@@ -107,14 +94,13 @@ void mensajeria_gestionar_signal(int signal) {
     if(signal == SIGUSR1) {
         buzon_imprimir_estado_en(buzon, configuracion->dump_file);
 
-        log_info(logger, "DUMP DE CACHE EJECUTADO { path_archivo: %s }", configuracion->dump_file);
+        logger_dump_ejecutado(configuracion->dump_file);
     }
 }
 
 void mensajeria_despachar_mensajes() {
     void _despachar_mensajes(char* key, t_cola* cola) {
         pthread_t gestor_de_una_cola;
-
         pthread_create(&gestor_de_una_cola, NULL, (void*) _despachar_mensajes_de, (void*) cola);
         pthread_detach(gestor_de_una_cola);
     }
