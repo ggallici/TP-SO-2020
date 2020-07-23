@@ -12,7 +12,7 @@
 
 #include "memoria.h"
 
-extern t_log* logger_debug;
-extern t_log* logger;
+t_log* logger_debug;
+t_log* logger;
 
 #endif /* LOGGER_H_ */

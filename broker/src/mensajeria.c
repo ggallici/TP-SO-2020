@@ -35,7 +35,7 @@ void _procesar_paquete_de(t_paquete* paquete, int cliente) {
 
         t_mensaje_despachable* mensaje_despachable = buzon_almacenar_mensaje(buzon, paquete);
 
-        logger_mensaje_almacenado(mensaje_despachable);
+        //logger_mensaje_almacenado(mensaje_despachable);
 
         mensaje_despachable_informar_id_a(mensaje_despachable, cliente);
         break;

@@ -15,8 +15,6 @@
 #include "buzon.h"
 
 t_configuracion* configuracion;
-t_log* logger_debug;
-t_log* logger;
 t_buzon* buzon;
 
 void mensajeria_inicializar();
