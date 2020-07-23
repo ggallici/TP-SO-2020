@@ -53,3 +53,11 @@ int list_index_of(t_list* lista, void* elemento_a_buscar) {
 
     return -1;
 }
+
+int list_sum_by(t_list* lista, int (*key_extractor)(void*)) {
+    int _sum_with_extractor(int acumulador, void* elemento) {
+        return acumulador + key_extractor(elemento);
+    }
+
+    return (int) list_fold(lista, (void*) 0, (void*) _sum_with_extractor);
+}
