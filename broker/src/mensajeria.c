@@ -40,6 +40,24 @@ void _procesar_paquete_de(t_paquete* paquete, int cliente) {
                 mensaje_get_tipo_as_string(paquete->header->tipo_mensaje),
                 paquete->header->correlation_id_mensaje);
 
+
+//        "[{L=0},{X=30}]";
+//        "[[L=0],[X=30]]";
+//        "{[L=0],[X=30]}";
+
+
+        //log_debug(logger_debug, get_particiones_serializadas(buzon->memoria->particiones));
+//
+//        int _tamanio_si_esta_libre_sino_0(t_particion* particion) {
+//            return particion->esta_libre ? particion->tamanio : 0;
+//        }
+//        int _tamanio_si_esta_ocupada_sino_0(t_particion* particion) {
+//            return !particion->esta_libre ? particion->tamanio : 0;
+//        }
+//        log_debug(logger_debug, list_sum_by(buzon->memoria->particiones, (void*) _tamanio_si_esta_libre_sino_0));
+//        log_debug(logger_debug, list_sum_by(buzon->memoria->particiones, (void*) _tamanio_si_esta_ocupada_sino_0));
+
+
         t_mensaje_despachable* mensaje_despachable = buzon_almacenar_mensaje(buzon, paquete);
 
         if(mensaje_despachable)
