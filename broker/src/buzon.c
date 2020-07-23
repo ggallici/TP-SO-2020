@@ -69,11 +69,7 @@ void buzon_despachar_mensaje_de(t_buzon* buzon, t_cola* cola) {
         if(enviado) {
             mensaje_despachable_add_suscriptor_enviado(mensaje_despachable, suscriptor);
 
-            log_info(logger, "\t%s ENVIADO { id: %i | correlation_id: %i } A SUSCRIPTOR { id: %i }",
-                    mensaje_get_tipo_as_string(paquete->header->tipo_mensaje),
-                    paquete->header->id_mensaje,
-                    paquete->header->correlation_id_mensaje,
-                    suscriptor->id);
+            logger_mensaje_enviado(paquete, suscriptor);
         }
 
         paquete_liberar(paquete);
@@ -89,7 +85,7 @@ void buzon_vaciar_hasta_tener(t_buzon* buzon, int espacio) {
         if(memoria_corresponde_compactar(buzon->memoria)) {
             memoria_compactar(buzon->memoria);
 
-            log_info(logger, "\tCOMPACTACION EJECUTADA");
+            logger_compactacion_ejecutada();
 
             memoria_resetear_contador_particiones_desocupadas(buzon->memoria);
 
@@ -102,10 +98,7 @@ void buzon_vaciar_hasta_tener(t_buzon* buzon, int espacio) {
         administrador_colas_remove_and_destroy_mensaje_despachable_by_id(buzon->administrador_colas, particion_victima->id_mensaje_asociado);
         particion_desocupar(particion_victima);
 
-        log_info(logger, "\tMENSAJE ELIMINADO { id: %i } ==> PARTICION LIBERADA { base: %i | size: %i }",
-                id_mensaje_victima,
-                particion_victima->base,
-                particion_victima->tamanio);
+        logger_mensaje_eliminado(id_mensaje_victima, particion_victima);
 
         memoria_consolidar(buzon->memoria);
 
@@ -134,11 +127,7 @@ void buzon_registrar_suscriptor(t_buzon* buzon, t_suscriptor* suscriptor) {
                 if(!fue_enviado_anteriormente)
                     mensaje_despachable_add_suscriptor_enviado(mensaje_despachable, suscriptor);
 
-                log_info(logger, "\t%s ENVIADO { id: %i | correlation_id: %i } A SUSCRIPTOR { id: %i }",
-                        mensaje_get_tipo_as_string(paquete->header->tipo_mensaje),
-                        paquete->header->id_mensaje,
-                        paquete->header->correlation_id_mensaje,
-                        suscriptor->id);
+                logger_mensaje_enviado(paquete, suscriptor);
             }
 
             paquete_liberar(paquete);
@@ -155,10 +144,10 @@ void buzon_recibir_ack(t_buzon* buzon, t_ack* ack) {
         mensaje_despachable_add_suscriptor_recibido(mensaje_despachable, ack);
 
         if(mensaje_despachable_tiene_todos_los_acks(mensaje_despachable))
-            log_debug(logger_debug, "Llegaron todos los ACKs del MENSAJE { id: %i }", ack->id_mensaje);
+            logger_mensaje_tiene_todos_los_acks(mensaje_despachable);
     }
     else {
-        log_warning(logger_debug, "No se pudo agregar el ACK. El MENSAJE { id: %i } ya fue eliminado", ack->id_mensaje);
+        logger_mensaje_eliminado_antes_de_recibir_ack(ack);
     }
 }
 

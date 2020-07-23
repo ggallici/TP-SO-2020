@@ -10,8 +10,6 @@
 
 #include <commons/log.h>
 
-#include "memoria.h"
-
 t_log* logger_debug;
 t_log* logger;
 
