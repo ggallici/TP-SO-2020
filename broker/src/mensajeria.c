@@ -38,7 +38,6 @@ void _procesar_paquete_de(t_paquete* paquete, int cliente) {
         logger_mensaje_almacenado(mensaje_despachable);
 
         mensaje_despachable_informar_id_a(mensaje_despachable, cliente);
-
         break;
     }
     default:
