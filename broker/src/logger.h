@@ -10,6 +10,8 @@
 
 #include <commons/log.h>
 
+#include <delibird-commons/utils/list.h>
+
 t_log* logger_debug;
 t_log* logger;
 
