@@ -60,7 +60,7 @@ void cola_add_or_update_suscriptor(t_cola* cola, t_suscriptor* un_suscriptor) {
     }
 
     pthread_mutex_lock(&cola->mutex_suscriptores);
-    list_remove_by_condition(cola->suscriptores, (void*) _is_the_one);
+    list_remove_and_destroy_by_condition(cola->suscriptores, (void*) _is_the_one, (void*) suscriptor_liberar);
     list_add(cola->suscriptores, un_suscriptor);
     pthread_mutex_unlock(&cola->mutex_suscriptores);
 }
