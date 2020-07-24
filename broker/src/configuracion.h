@@ -11,6 +11,7 @@
 #include <commons/config.h>
 #include <commons/string.h>
 
+#include "memoria_algoritmos.h"
 #include "logger.h"
 
 typedef struct {

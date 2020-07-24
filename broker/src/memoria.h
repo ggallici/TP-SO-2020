@@ -14,20 +14,9 @@
 #include <delibird-commons/utils/list.h>
 
 #include "utils.h"
+#include "memoria_algoritmos.h"
 #include "particion.h"
 #include "logger.h"
-
-typedef enum {
-    PARTICIONES_DINAMICAS, BUDDY_SYSTEM
-} t_algoritmo_memoria;
-
-typedef enum {
-    FIRST_FIT, BEST_FIT
-} t_algoritmo_particion_libre;
-
-typedef enum {
-    FIFO, LRU
-} t_algoritmo_reemplazo;
 
 typedef struct {
     void* data;
