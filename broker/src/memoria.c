@@ -147,11 +147,15 @@ void memoria_compactar(t_memoria* memoria) {
         memmove(ubicacion_nueva_info, ubicacion_anterior_info, particion->tamanio);
     }
 
+    logger_detalle_memoria(memoria);
+
     memoria_consolidar(memoria);
 }
 
-void memoria_consolidar(t_memoria* memoria) {
+int memoria_consolidar(t_memoria* memoria) {
     int i = 0;
+    int cantidad_particiones_consolidadas = 1;
+
     while(i < list_size(memoria->particiones) - 1) {
         t_particion* particion = list_get(memoria->particiones, i);
         t_particion* particion_siguiente = list_get(memoria->particiones, i + 1);
@@ -161,9 +165,11 @@ void memoria_consolidar(t_memoria* memoria) {
             : true;
 
         if(particion->esta_libre && particion_siguiente->esta_libre && particiones_dinamicas_o_son_buddies) {
+            logger_particiones_consolidadas(memoria, particion, particion_siguiente, i, i + 1);
+
             particion->tamanio += particion_siguiente->tamanio;
 
-            logger_particiones_asociadas(memoria, particion, particion_siguiente, i, i + 1);
+            cantidad_particiones_consolidadas++;
 
             list_remove_and_destroy_element(memoria->particiones, i + 1, (void*) particion_liberar);
 
@@ -173,4 +179,6 @@ void memoria_consolidar(t_memoria* memoria) {
         else
             i++;
     }
+
+    return cantidad_particiones_consolidadas;
 }

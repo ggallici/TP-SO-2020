@@ -64,6 +64,6 @@ void memoria_resetear_contador_particiones_desocupadas(t_memoria* memoria);
 
 bool memoria_corresponde_compactar(t_memoria* memoria);
 void memoria_compactar(t_memoria* memoria);
-void memoria_consolidar(t_memoria* memoria);
+int memoria_consolidar(t_memoria* memoria);
 
 #endif /* MEMORIA_H_ */

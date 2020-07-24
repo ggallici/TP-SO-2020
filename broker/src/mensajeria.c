@@ -23,9 +23,9 @@ void _procesar_paquete_de(t_paquete* paquete, int cliente) {
     case ACK: {
         t_ack* ack = paquete_to_ack(paquete);
 
-        buzon_recibir_ack(buzon, ack);
-
         logger_ack_recibido(ack);
+
+        buzon_recibir_ack(buzon, ack);
 
         ack_liberar(ack);
         break;
@@ -34,8 +34,6 @@ void _procesar_paquete_de(t_paquete* paquete, int cliente) {
         logger_mensaje_recibido(paquete);
 
         t_mensaje_despachable* mensaje_despachable = buzon_almacenar_mensaje(buzon, paquete);
-
-        logger_mensaje_almacenado(mensaje_despachable);
 
         mensaje_despachable_informar_id_a(mensaje_despachable, cliente);
         break;
@@ -87,6 +85,8 @@ void mensajeria_inicializar() {
         configuracion->algoritmo_reemplazo,
         configuracion->frecuencia_compactacion
     );
+
+    logger_iniciando_broker(configuracion->tamanio_memoria);
 }
 
 void mensajeria_gestionar_signal(int signal) {
@@ -102,6 +102,8 @@ void mensajeria_despachar_mensajes() {
         pthread_t gestor_de_una_cola;
         pthread_create(&gestor_de_una_cola, NULL, (void*) _despachar_mensajes_de, (void*) cola);
         pthread_detach(gestor_de_una_cola);
+
+        logger_iniciando_despacho_de_mensajes_de(cola->tipo_mensaje);
     }
 
     dictionary_iterator(buzon->administrador_colas->colas, (void*) _despachar_mensajes);
@@ -109,7 +111,9 @@ void mensajeria_despachar_mensajes() {
 
 void mensajeria_gestionar_clientes() {
     pthread_t gestor_de_clientes;
-
     pthread_create(&gestor_de_clientes, NULL, (void*) _gestionar_clientes, NULL);
+
+    logger_iniciando_escucha_de_clientes();
+
     pthread_join(gestor_de_clientes, NULL);
 }

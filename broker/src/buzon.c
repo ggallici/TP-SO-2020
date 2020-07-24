@@ -47,6 +47,11 @@ t_mensaje_despachable* buzon_almacenar_mensaje(t_buzon* buzon, t_paquete* paquet
         memoria_asignar_paquete_a_la_particion(buzon->memoria, paquete, mensaje_despachable->particion_asociada);
 
         particion_ocupar(mensaje_despachable->particion_asociada);
+
+        logger_mensaje_almacenado(mensaje_despachable);
+        logger_detalle_memoria(buzon->memoria);
+        logger_espacio_ocupado(buzon->memoria);
+        logger_espacio_libre(buzon->memoria);
         pthread_mutex_unlock(&buzon->mutex_memoria);
 
         cola_push_mensaje_sin_despachar(cola, mensaje_despachable);
@@ -83,9 +88,11 @@ void buzon_despachar_mensaje_de(t_buzon* buzon, t_cola* cola) {
 void buzon_vaciar_hasta_tener(t_buzon* buzon, int espacio) {
     while(!memoria_existe_particion_libre_con(buzon->memoria, espacio)) {
         if(memoria_corresponde_compactar(buzon->memoria)) {
+            logger_compactacion_ejecutada();
+
             memoria_compactar(buzon->memoria);
 
-            logger_compactacion_ejecutada();
+            logger_detalle_memoria(buzon->memoria);
 
             memoria_resetear_contador_particiones_desocupadas(buzon->memoria);
 
@@ -99,8 +106,13 @@ void buzon_vaciar_hasta_tener(t_buzon* buzon, int espacio) {
         particion_desocupar(particion_victima);
 
         logger_mensaje_eliminado(id_mensaje_victima, particion_victima);
+        logger_detalle_memoria(buzon->memoria);
 
-        memoria_consolidar(buzon->memoria);
+        int cantidad_particiones_consolidadas = memoria_consolidar(buzon->memoria);
+
+        if(cantidad_particiones_consolidadas > 1) {
+            logger_detalle_memoria(buzon->memoria);
+        }
 
         memoria_aumentar_contador_particiones_desocupadas(buzon->memoria);
     }

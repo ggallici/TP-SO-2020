@@ -8,20 +8,20 @@
 #include "buzon.h"
 #include "logger.h"
 
-void logger_iniciando_broker() {
-
+void logger_iniciando_broker(int tamanio_memoria) {
+    log_debug(logger_debug, "Iniciando BROKER con %ib de memoria", tamanio_memoria);
 }
 
 void logger_iniciando_despacho_de_mensajes_de(t_tipo_mensaje tipo_mensaje) {
-
+    log_debug(logger_debug, "Iniciando despacho de mensajes de la cola: %s", mensaje_get_tipo_as_string(tipo_mensaje));
 }
 
 void logger_iniciando_escucha_de_clientes() {
-
+    log_debug(logger_debug, "Esperando por nuevos clientes");
 }
 
 void logger_conexion_iniciada(int cliente) {
-    log_info(logger, "< CONEXION INICIADA [%i] >", cliente);
+    log_info(logger, "< CONEXION INICIADA >", cliente);
 }
 
 void logger_suscripcion_recibida(t_suscripcion* suscripcion) {
@@ -35,9 +35,10 @@ void logger_ack_recibido(t_ack* ack) {
 }
 
 void logger_mensaje_recibido(t_paquete* paquete) {
-    log_info(logger, "\t%s RECIBIDO { id: AUN_NO_ASIGNADO | correlation_id: %i }",
+    log_info(logger, "\t%s RECIBIDO { id: AUN_NO_ASIGNADO | correlation_id: %i | size: %i }",
             mensaje_get_tipo_as_string(paquete->header->tipo_mensaje),
-            paquete->header->correlation_id_mensaje);
+            paquete->header->correlation_id_mensaje,
+            paquete->header->payload_size);
 }
 
 void logger_mensaje_almacenado(t_mensaje_despachable* mensaje_despachable) {
@@ -59,11 +60,13 @@ void logger_dump_ejecutado(char* dump_file_path) {
     log_info(logger, "< DUMP DE CACHE EJECUTADO > { path_archivo: %s }", dump_file_path);
 }
 
-void logger_particiones_asociadas(t_memoria* memoria, t_particion* una_particion, t_particion* otra_particion, int una_posicion, int otra_posicion) {
+void logger_particiones_consolidadas(t_memoria* memoria, t_particion* una_particion, t_particion* otra_particion, int una_posicion, int otra_posicion) {
     if(memoria->algoritmo_memoria == BUDDY_SYSTEM)
-        log_info(logger, "\tPARTICION %i { base: %i | size: %i } ASOCIADA A PARTICION %i { base: %i | size: %i }",
+        log_info(logger, "\tPARTICION %i { base: %i | size: %i } CONSOLIDADA CON PARTICION %i { base: %i | size: %i }",
                 una_posicion, una_particion->base, una_particion->tamanio,
                 otra_posicion, otra_particion->base, otra_particion->tamanio);
+    else
+        log_debug(logger_debug, "Particion %i CONSOLIDADA con Particion %i", una_posicion, otra_posicion);
 }
 
 void logger_mensaje_sin_despachar_eliminado(t_cola* cola, t_mensaje_despachable* mensaje_sin_despachar) {
@@ -128,7 +131,7 @@ void logger_espacio_ocupado(t_memoria* memoria) {
 void logger_detalle_memoria(t_memoria* memoria) {
     char* _detalle_particiones(t_list* particiones) {
         char* __concat_with_particion(char* acumulador, t_particion* particion) {
-            char* detalle_particion = string_from_format("[%s=%i] ", particion->esta_libre ? "L" : "X", particion->tamanio);
+            char* detalle_particion = string_from_format("[%s=%i] ", particion->esta_libre ? "LI" : "OC", particion->tamanio);
             string_append(&acumulador, detalle_particion);
             free(detalle_particion);
 
@@ -138,5 +141,7 @@ void logger_detalle_memoria(t_memoria* memoria) {
         return list_fold(particiones, (void*) string_new(), (void*) __concat_with_particion);
     }
 
-    log_debug(logger_debug, "Detalle memoria = %s", _detalle_particiones(memoria->particiones));
+    char* detalle = _detalle_particiones(memoria->particiones);
+    log_debug(logger_debug, "Estado particiones: %s", detalle);
+    free(detalle);
 }
