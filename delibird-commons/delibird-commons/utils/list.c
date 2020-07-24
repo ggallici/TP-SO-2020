@@ -25,8 +25,10 @@ bool list_equals(t_list* una_lista, t_list* otra_lista, bool (*comparador)(void*
         }
     }
 
+    bool equals = list_is_empty(copia_otra_lista);
     list_destroy(copia_otra_lista);
-    return list_is_empty(copia_otra_lista);
+
+    return equals;
 }
 
 void* list_min_by(t_list* lista, void* key_extractor(void*)) {
