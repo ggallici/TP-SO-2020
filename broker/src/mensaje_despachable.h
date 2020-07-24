@@ -14,8 +14,8 @@
 #include <delibird-commons/utils/ipc.h>
 #include <delibird-commons/utils/list.h>
 
+#include "particion.h"
 #include "suscriptor.h"
-#include "memoria.h"
 
 typedef struct {
     uint32_t id;
@@ -32,8 +32,7 @@ typedef struct {
 
 } t_mensaje_despachable;
 
-t_mensaje_despachable* mensaje_despachable_from_paquete(t_paquete* paquete, t_memoria* memoria);
-t_paquete* mensaje_despachable_to_paquete(t_mensaje_despachable* mensaje_despachable, t_memoria* memoria);
+t_mensaje_despachable* mensaje_despachable_crear(uint32_t correlation_id, uint32_t size, t_particion* particion_asociada);
 void mensaje_despachable_liberar(t_mensaje_despachable* mensaje_despachable);
 
 void mensaje_despachable_add_suscriptor_enviado(t_mensaje_despachable* mensaje_despachable, t_suscriptor* suscriptor);

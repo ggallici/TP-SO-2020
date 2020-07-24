@@ -17,6 +17,7 @@
 #include <delibird-commons/utils/ipc.h>
 
 #include "mensaje_despachable.h"
+#include "logger.h"
 
 typedef struct {
     t_tipo_mensaje tipo_mensaje;

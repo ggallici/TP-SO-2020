@@ -18,37 +18,21 @@ t_header* _rearmar_header_con(t_mensaje_despachable* mensaje_despachable) {
     return header;
 }
 
-t_mensaje_despachable* mensaje_despachable_from_paquete(t_paquete* paquete, t_memoria* memoria) {
-  t_particion* particion = memoria_buscar_particion_libre_con(memoria, paquete->header->payload_size);
+t_mensaje_despachable* mensaje_despachable_crear(uint32_t correlation_id, uint32_t size, t_particion* particion_asociada) {
+    t_mensaje_despachable* mensaje_despachable = malloc(sizeof(t_mensaje_despachable));
 
-  t_mensaje_despachable* mensaje_despachable = malloc(sizeof(t_mensaje_despachable));
+    mensaje_despachable->correlation_id = correlation_id;
+    mensaje_despachable->size = size;
 
-  mensaje_despachable->correlation_id = paquete->header->correlation_id_mensaje;
-  mensaje_despachable->size = paquete->header->payload_size;
+    mensaje_despachable->particion_asociada = particion_asociada;
 
-  mensaje_despachable->particion_asociada = particion;
+    mensaje_despachable->ids_suscriptores_a_los_que_fue_enviado = list_create();
+    mensaje_despachable->ids_suscriptores_que_lo_recibieron = list_create();
 
-  mensaje_despachable->ids_suscriptores_a_los_que_fue_enviado = list_create();
-  mensaje_despachable->ids_suscriptores_que_lo_recibieron = list_create();
+    pthread_mutex_init(&mensaje_despachable->mutex_ids_suscriptores_a_los_que_fue_enviado, NULL);
+    pthread_mutex_init(&mensaje_despachable->mutex_ids_suscriptores_que_lo_recibieron, NULL);
 
-  pthread_mutex_init(&mensaje_despachable->mutex_ids_suscriptores_a_los_que_fue_enviado, NULL);
-  pthread_mutex_init(&mensaje_despachable->mutex_ids_suscriptores_que_lo_recibieron, NULL);
-
-  return mensaje_despachable;
-}
-
-t_paquete* mensaje_despachable_to_paquete(t_mensaje_despachable* mensaje_despachable, t_memoria* memoria) {
-  t_paquete* paquete = malloc(sizeof(t_paquete));
-
-  paquete->header = _rearmar_header_con(mensaje_despachable);
-  paquete->payload = malloc(mensaje_despachable->size);
-
-  void* direccion_fisica = memoria_get_direccion_fisica(memoria, mensaje_despachable->particion_asociada->base);
-  mensaje_despachable->particion_asociada->tiempo_ultima_referencia = clock();
-
-  memcpy(paquete->payload, direccion_fisica, mensaje_despachable->size);
-
-  return paquete;
+    return mensaje_despachable;
 }
 
 void mensaje_despachable_liberar(t_mensaje_despachable* mensaje_despachable) {

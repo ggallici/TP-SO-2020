@@ -27,6 +27,9 @@ t_buzon* buzon_crear(
     int frecuencia_compactacion
 );
 
+t_mensaje_despachable* buzon_get_mensaje_despachable_from_paquete(t_buzon* buzon, t_paquete* paquete);
+t_paquete* buzon_get_paquete_from_mensaje_despachable(t_buzon* buzon, t_mensaje_despachable* mensaje_despachable);
+
 t_mensaje_despachable* buzon_almacenar_mensaje(t_buzon* buzon, t_paquete* paquete);
 void buzon_despachar_mensaje_de(t_buzon* buzon, t_cola* cola);
 void buzon_vaciar_hasta_tener(t_buzon* buzon, int espacio);

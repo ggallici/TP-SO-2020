@@ -11,7 +11,7 @@
 #include <commons/config.h>
 #include <commons/string.h>
 
-#include "memoria.h"
+#include "logger.h"
 
 typedef struct {
     int tamanio_memoria;

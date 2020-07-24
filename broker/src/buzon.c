@@ -30,6 +30,29 @@ t_buzon* buzon_crear(
     return buzon;
 }
 
+t_mensaje_despachable* buzon_get_mensaje_despachable_from_paquete(t_buzon* buzon, t_paquete* paquete) {
+  t_particion* particion = memoria_buscar_particion_libre_con(buzon->memoria, paquete->header->payload_size);
+
+  return mensaje_despachable_crear(
+          paquete->header->correlation_id_mensaje,
+          paquete->header->payload_size,
+          particion);
+}
+
+t_paquete* buzon_get_paquete_from_mensaje_despachable(t_buzon* buzon, t_mensaje_despachable* mensaje_despachable) {
+  t_paquete* paquete = malloc(sizeof(t_paquete));
+
+  paquete->header = _rearmar_header_con(mensaje_despachable);
+  paquete->payload = malloc(mensaje_despachable->size);
+
+  void* direccion_fisica = memoria_get_direccion_fisica(buzon->memoria, mensaje_despachable->particion_asociada->base);
+  mensaje_despachable->particion_asociada->tiempo_ultima_referencia = clock();
+
+  memcpy(paquete->payload, direccion_fisica, mensaje_despachable->size);
+
+  return paquete;
+}
+
 t_mensaje_despachable* buzon_almacenar_mensaje(t_buzon* buzon, t_paquete* paquete) {
     t_mensaje_despachable* mensaje_despachable = NULL;
     t_cola* cola = administrador_colas_get_cola_from(buzon->administrador_colas, paquete->header->tipo_mensaje);
@@ -38,7 +61,7 @@ t_mensaje_despachable* buzon_almacenar_mensaje(t_buzon* buzon, t_paquete* paquet
         pthread_mutex_lock(&buzon->mutex_memoria);
         buzon_vaciar_hasta_tener(buzon, paquete->header->payload_size);
 
-        mensaje_despachable = mensaje_despachable_from_paquete(paquete, buzon->memoria);
+        mensaje_despachable = buzon_get_mensaje_despachable_from_paquete(paquete, buzon->memoria);
 
         administrador_colas_asignar_id_mensaje_a(buzon->administrador_colas, mensaje_despachable);
 
@@ -65,7 +88,7 @@ void buzon_despachar_mensaje_de(t_buzon* buzon, t_cola* cola) {
 
     void _despachar_mensaje_a(t_suscriptor* suscriptor) {
         pthread_mutex_lock(&buzon->mutex_memoria);
-        t_paquete* paquete = mensaje_despachable_to_paquete(mensaje_despachable, buzon->memoria);
+        t_paquete* paquete = buzon_get_paquete_from_mensaje_despachable(mensaje_despachable, buzon->memoria);
         pthread_mutex_unlock(&buzon->mutex_memoria);
 
         paquete_set_tipo_mensaje(paquete, cola->tipo_mensaje);
@@ -128,7 +151,7 @@ void buzon_registrar_suscriptor(t_buzon* buzon, t_suscriptor* suscriptor) {
 
         if(!fue_recibido) {
             pthread_mutex_lock(&buzon->mutex_memoria);
-            t_paquete* paquete = mensaje_despachable_to_paquete(mensaje_despachable, buzon->memoria);
+            t_paquete* paquete = buzon_get_paquete_from_mensaje_despachable(mensaje_despachable, buzon->memoria);
             pthread_mutex_unlock(&buzon->mutex_memoria);
 
             paquete_set_tipo_mensaje(paquete, cola->tipo_mensaje);
