@@ -8,7 +8,7 @@
 #include "configuration.h"
 
 static char* const default_logger_path = "default.log";
-static char* const config_path = "game_card.config";
+static char* const config_path = "game-card.config";
 static t_config* config;
 
 static void log_config_game_card(t_config_game_card*);
